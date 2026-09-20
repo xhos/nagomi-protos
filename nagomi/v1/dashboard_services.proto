@@ -22,6 +22,8 @@ service DashboardService {
   rpc GetCategorySpendingComparison(GetCategorySpendingComparisonRequest) returns (GetCategorySpendingComparisonResponse);
   rpc GetNetWorthHistory(GetNetWorthHistoryRequest) returns (GetNetWorthHistoryResponse);
   rpc GetCurrencies(GetCurrenciesRequest) returns (GetCurrenciesResponse);
+  // Latest exchange rates for reporting; source amounts remain in account currency.
+  rpc GetExchangeRates(GetExchangeRatesRequest) returns (GetExchangeRatesResponse);
 }
 
 message GetDashboardSummaryRequest {
@@ -125,6 +127,17 @@ message CurrencyInfo {
 }
 
 message GetCurrenciesRequest {}
+
+message GetExchangeRatesRequest {
+  string reporting_currency = 1;
+  repeated string currencies = 2;
+}
+
+message GetExchangeRatesResponse {
+  string reporting_currency = 1;
+  // Multiply an amount in the map key's currency by this rate.
+  map<string, double> rates = 2;
+}
 
 message GetCurrenciesResponse {
   repeated CurrencyInfo currencies = 1;
