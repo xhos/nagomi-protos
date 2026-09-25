@@ -2,13 +2,13 @@ syntax = "proto3";
 
 package nagomi.v1;
 
-import "nagomi/v1/common.proto";
-import "nagomi/v1/enums.proto";
-import "google/type/money.proto";
-import "nagomi/v1/transaction.proto";
 import "buf/validate/validate.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/money.proto";
+import "nagomi/v1/common.proto";
+import "nagomi/v1/enums.proto";
+import "nagomi/v1/transaction.proto";
 
 service TransactionService {
   rpc ListTransactions(ListTransactionsRequest) returns (ListTransactionsResponse);
@@ -26,7 +26,7 @@ message ListTransactionsRequest {
   string user_id = 1 [(buf.validate.field).string.uuid = true];
   optional int64 account_id = 2 [(buf.validate.field).int64.gt = 0];
   optional int32 limit = 3 [(buf.validate.field).int32 = {
-    gte: 1,
+    gte: 1
     lte: 1000
   }];
   optional int32 offset = 4 [(buf.validate.field).int32.gte = 0];
@@ -74,6 +74,8 @@ message TransactionInput {
   optional double exchange_rate = 10;
   optional int64 split_from_id = 11;
   optional string external_id = 12;
+  // unspecified is manual
+  TransactionSource source = 13 [(buf.validate.field).enum.defined_only = true];
 }
 
 message CreateTransactionRequest {

@@ -50,6 +50,8 @@ message Transaction {
   optional int64 split_from_id = 21;
   bool forgiven = 22;
   repeated Transaction splits = 23;
+
+  TransactionSource source = 24;
 }
 
 message TransactionWithScore {
