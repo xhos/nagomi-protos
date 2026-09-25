@@ -1,0 +1,86 @@
+syntax = "proto3";
+
+package nagomi.v1;
+
+import "buf/validate/validate.proto";
+import "nagomi/v1/statement.proto";
+import "nagomi/v1/statement_parser.proto";
+
+service StatementService {
+  // parses and stores the file as a pending statement. uploading a file that is
+  // already pending returns that preview; one already imported is ALREADY_EXISTS.
+  rpc PreviewStatementImport(PreviewStatementImportRequest) returns (PreviewStatementImportResponse);
+  rpc CommitStatementImport(CommitStatementImportRequest) returns (CommitStatementImportResponse);
+  rpc ListStatements(ListStatementsRequest) returns (ListStatementsResponse);
+  rpc GetStatement(GetStatementRequest) returns (GetStatementResponse);
+  rpc DeleteStatement(DeleteStatementRequest) returns (DeleteStatementResponse);
+}
+
+message PreviewStatementImportRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  bytes pdf_data = 2 [(buf.validate.field).bytes = {
+    min_len: 1,
+    max_len: 20971520
+  }];
+  string file_name = 3 [(buf.validate.field).string.max_len = 255];
+}
+
+message PreviewStatementImportResponse {
+  Statement statement = 1;
+  repeated ParsedStatementLine lines = 2;
+  // account whose aliases contain the statement's account number
+  optional int64 matched_account_id = 3;
+  // lines already present on the matched account (same external_id)
+  int32 duplicate_count = 4;
+}
+
+message CommitStatementImportRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 statement_id = 2 [(buf.validate.field).int64.gt = 0];
+  oneof account {
+    option (buf.validate.oneof).required = true;
+    int64 account_id = 3 [(buf.validate.field).int64.gt = 0];
+    // creates an account from the statement's bank, type and currency
+    string new_account_name = 4 [(buf.validate.field).string = {
+      min_len: 1,
+      max_len: 100
+    }];
+  }
+}
+
+message CommitStatementImportResponse {
+  Statement statement = 1;
+  int32 created_count = 2;
+  int32 duplicate_count = 3;
+}
+
+message ListStatementsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  optional int64 account_id = 2;
+  optional StatementStatus status = 3;
+}
+
+message ListStatementsResponse {
+  repeated Statement statements = 1;
+}
+
+message GetStatementRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 id = 2 [(buf.validate.field).int64.gt = 0];
+}
+
+message GetStatementResponse {
+  Statement statement = 1;
+  bytes pdf_data = 2;
+}
+
+message DeleteStatementRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 id = 2 [(buf.validate.field).int64.gt = 0];
+  // otherwise its transactions stay, unlinked
+  bool delete_transactions = 3;
+}
+
+message DeleteStatementResponse {
+  int32 deleted_transactions = 1;
+}

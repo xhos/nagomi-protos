@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package nagomi.v1;
+
+import "google/type/date.proto";
+import "nagomi/v1/enums.proto";
+
+service StatementParserService {
+  rpc ParseStatement(ParseStatementRequest) returns (ParseStatementResponse);
+}
+
+message ParseStatementRequest {
+  bytes pdf_data = 1;
+}
+
+message ParseStatementResponse {
+  ParsedStatement statement = 1;
+}
+
+message ParsedStatement {
+  string parser = 1; // which parser handled it, e.g. "rbc-chequing"
+  string bank = 2;
+  AccountType account_type = 3;
+  string account_number = 4;
+  google.type.Date period_start = 5;
+  google.type.Date period_end = 6;
+  string currency = 7;
+  optional int64 opening_balance_cents = 8;
+  optional int64 closing_balance_cents = 9;
+  repeated ParsedStatementLine lines = 10;
+}
+
+message ParsedStatementLine {
+  google.type.Date date = 1;
+  optional google.type.Date posting_date = 2;
+  // always positive, sign lives in direction
+  int64 amount_cents = 3;
+  TransactionDirection direction = 4;
+  string description = 5;
+}

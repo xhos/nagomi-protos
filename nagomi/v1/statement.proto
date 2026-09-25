@@ -1,0 +1,33 @@
+syntax = "proto3";
+
+package nagomi.v1;
+
+import "google/protobuf/timestamp.proto";
+import "google/type/date.proto";
+import "nagomi/v1/enums.proto";
+
+enum StatementStatus {
+  STATEMENT_STATUS_UNSPECIFIED = 0;
+  STATEMENT_STATUS_PENDING = 1;
+  STATEMENT_STATUS_IMPORTED = 2;
+}
+
+message Statement {
+  int64 id = 1;
+  StatementStatus status = 2;
+  optional int64 account_id = 3;
+  optional string account_name = 4;
+  string file_name = 5;
+  string parser = 6;
+  string bank = 7;
+  AccountType account_type = 8;
+  string account_number = 9;
+  google.type.Date period_start = 10;
+  google.type.Date period_end = 11;
+  string currency = 12;
+  optional int64 opening_balance_cents = 13;
+  optional int64 closing_balance_cents = 14;
+  int32 line_count = 15;
+  google.protobuf.Timestamp created_at = 16;
+  optional google.protobuf.Timestamp imported_at = 17;
+}
