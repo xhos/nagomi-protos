@@ -43,6 +43,9 @@ message Account {
     }
   }];
   google.type.Money balance = 13;
+  // balance comes from imported bank statements, which reconcile the
+  // provisional email and connector transactions. only these accept statements
+  bool statement_driven = 15;
 }
 
 message AccountBalance {

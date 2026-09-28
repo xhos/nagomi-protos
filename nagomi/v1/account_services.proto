@@ -48,6 +48,7 @@ message CreateAccountRequest {
   google.type.Money anchor_balance = 6;
   string main_currency = 7;
   repeated string colors = 8;
+  bool statement_driven = 9;
 }
 
 message CreateAccountResponse {
@@ -68,6 +69,7 @@ message UpdateAccountRequest {
   optional google.type.Money anchor_balance = 9;
   optional string main_currency = 10;
   repeated string colors = 11;
+  optional bool statement_driven = 12;
 }
 
 message UpdateAccountResponse {}
