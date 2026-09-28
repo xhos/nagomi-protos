@@ -30,4 +30,7 @@ message Statement {
   int32 line_count = 15;
   google.protobuf.Timestamp created_at = 16;
   optional google.protobuf.Timestamp imported_at = 17;
+  // opening balance plus the lines equals the closing balance; unset when the
+  // statement's balances couldn't be read
+  optional bool balance_ok = 18;
 }
