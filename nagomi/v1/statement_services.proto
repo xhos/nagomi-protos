@@ -5,11 +5,17 @@ package nagomi.v1;
 import "buf/validate/validate.proto";
 import "nagomi/v1/statement.proto";
 import "nagomi/v1/statement_parser.proto";
+import "nagomi/v1/transaction.proto";
 
 service StatementService {
   // parses and stores the file as a pending statement. uploading a file that is
   // already pending returns that preview; one already imported is ALREADY_EXISTS.
   rpc PreviewStatementImport(PreviewStatementImportRequest) returns (PreviewStatementImportResponse);
+  // what committing a pending statement into this account would do, for when the
+  // user picks an account other than the matched one
+  rpc PlanStatementImport(PlanStatementImportRequest) returns (PlanStatementImportResponse);
+  // reconciles the account against the statement: confirms matched transactions,
+  // creates the missing ones and deletes provisional ones it doesn't contain
   rpc CommitStatementImport(CommitStatementImportRequest) returns (CommitStatementImportResponse);
   rpc ListStatements(ListStatementsRequest) returns (ListStatementsResponse);
   rpc GetStatement(GetStatementRequest) returns (GetStatementResponse);
@@ -30,8 +36,59 @@ message PreviewStatementImportResponse {
   repeated ParsedStatementLine lines = 2;
   // account whose aliases contain the statement's account number
   optional int64 matched_account_id = 3;
-  // lines already present on the matched account (same external_id)
-  int32 duplicate_count = 4;
+  reserved 4;
+  // against the matched account, when there is one
+  optional StatementReconciliation reconciliation = 5;
+}
+
+message PlanStatementImportRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 statement_id = 2 [(buf.validate.field).int64.gt = 0];
+  int64 account_id = 3 [(buf.validate.field).int64.gt = 0];
+}
+
+message PlanStatementImportResponse {
+  StatementReconciliation reconciliation = 1;
+}
+
+enum ReconciliationAction {
+  RECONCILIATION_ACTION_UNSPECIFIED = 0;
+  // a statement line confirms this transaction
+  RECONCILIATION_ACTION_CONFIRM = 1;
+  // confirms it, and the statement's amount replaces the provisional one (tips, fx)
+  RECONCILIATION_ACTION_UPDATE_AMOUNT = 2;
+  // a statement line with nothing to confirm; becomes a new transaction
+  RECONCILIATION_ACTION_CREATE = 3;
+  // a line this or an overlapping statement already imported
+  RECONCILIATION_ACTION_ALREADY_IMPORTED = 4;
+  // a provisional transaction in the period the statement doesn't contain
+  RECONCILIATION_ACTION_DELETE = 5;
+  // not on the statement either, but left alone; see keep_reason
+  RECONCILIATION_ACTION_KEEP = 6;
+}
+
+enum ReconciliationKeepReason {
+  RECONCILIATION_KEEP_REASON_UNSPECIFIED = 0;
+  // entered by hand, or from a statement since deleted
+  RECONCILIATION_KEEP_REASON_MANUAL = 1;
+  // has notes, a receipt or splits
+  RECONCILIATION_KEEP_REASON_USER_DATA = 2;
+  // near the period end, so it may post on the next statement
+  RECONCILIATION_KEEP_REASON_GRACE = 3;
+}
+
+message ReconciliationItem {
+  ReconciliationAction action = 1;
+  // into the preview's lines; set for every action but DELETE and KEEP
+  optional int32 line_index = 2;
+  // the existing transaction; set for CONFIRM, UPDATE_AMOUNT, DELETE and KEEP
+  optional Transaction transaction = 3;
+  ReconciliationKeepReason keep_reason = 4;
+}
+
+message StatementReconciliation {
+  int64 account_id = 1;
+  repeated ReconciliationItem items = 2;
 }
 
 message CommitStatementImportRequest {
@@ -52,6 +109,11 @@ message CommitStatementImportResponse {
   Statement statement = 1;
   int32 created_count = 2;
   int32 duplicate_count = 3;
+  int32 confirmed_count = 4;
+  // confirmed with the statement's amount
+  int32 updated_count = 5;
+  int32 deleted_count = 6;
+  int32 kept_count = 7;
 }
 
 message ListStatementsRequest {
