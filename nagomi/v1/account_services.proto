@@ -8,6 +8,7 @@ import "nagomi/v1/enums.proto";
 import "buf/validate/validate.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/date.proto";
 
 service AccountService {
   rpc ListAccounts(ListAccountsRequest) returns (ListAccountsResponse);
@@ -70,6 +71,13 @@ message UpdateAccountRequest {
   optional string main_currency = 10;
   repeated string colors = 11;
   optional bool statement_driven = 12;
+  // these three are cleared by naming them in update_mask and leaving them unset
+  optional google.type.Date statements_start = 13;
+  optional int32 statement_release_day = 14 [(buf.validate.field).int32 = {
+    gte: 1,
+    lte: 31
+  }];
+  optional google.type.Date closed_at = 15;
 }
 
 message UpdateAccountResponse {}

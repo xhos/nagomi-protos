@@ -6,6 +6,7 @@ import "google/type/money.proto";
 import "nagomi/v1/enums.proto";
 import "buf/validate/validate.proto";
 import "google/protobuf/timestamp.proto";
+import "google/type/date.proto";
 
 message Account {
   int64 id = 1;
@@ -46,6 +47,12 @@ message Account {
   // balance comes from imported bank statements, which reconcile the
   // provisional email and connector transactions. only these accept statements
   bool statement_driven = 15;
+  // the first statement the bank has; earlier periods aren't expected
+  optional google.type.Date statements_start = 16;
+  // day of the month new statements come out; inferred from past statements when unset
+  optional int32 statement_release_day = 17;
+  // no statements are expected after this
+  optional google.type.Date closed_at = 18;
 }
 
 message AccountBalance {
