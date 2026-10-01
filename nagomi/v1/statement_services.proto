@@ -20,6 +20,11 @@ service StatementService {
   rpc ListStatements(ListStatementsRequest) returns (ListStatementsResponse);
   rpc GetStatement(GetStatementRequest) returns (GetStatementResponse);
   rpc DeleteStatement(DeleteStatementRequest) returns (DeleteStatementResponse);
+  // runs an imported statement's stored file through the parser again, after a
+  // parser fix, and reconciles its account against the new lines. its own
+  // transactions the statement no longer lists are deleted, unless they carry
+  // notes, a receipt or splits.
+  rpc ReparseStatement(ReparseStatementRequest) returns (ReparseStatementResponse);
 }
 
 message PreviewStatementImportRequest {
@@ -61,7 +66,8 @@ enum ReconciliationAction {
   RECONCILIATION_ACTION_CREATE = 3;
   // a line this or an overlapping statement already imported
   RECONCILIATION_ACTION_ALREADY_IMPORTED = 4;
-  // a provisional transaction in the period the statement doesn't contain
+  // a provisional transaction in the period the statement doesn't contain, or,
+  // when re-parsing, one of the statement's own that it no longer lists
   RECONCILIATION_ACTION_DELETE = 5;
   // not on the statement either, but left alone; see keep_reason
   RECONCILIATION_ACTION_KEEP = 6;
@@ -145,4 +151,18 @@ message DeleteStatementRequest {
 
 message DeleteStatementResponse {
   int32 deleted_transactions = 1;
+}
+
+message ReparseStatementRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 id = 2 [(buf.validate.field).int64.gt = 0];
+  // otherwise only returns what re-parsing would change
+  bool apply = 3;
+}
+
+message ReparseStatementResponse {
+  // with the new parse's values, which are saved only when applied
+  Statement statement = 1;
+  repeated ParsedStatementLine lines = 2;
+  StatementReconciliation reconciliation = 3;
 }
