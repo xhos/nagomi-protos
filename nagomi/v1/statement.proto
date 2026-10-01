@@ -34,3 +34,24 @@ message Statement {
   // statement's balances couldn't be read
   optional bool balance_ok = 18;
 }
+
+enum StatementCoverageStatus {
+  STATEMENT_COVERAGE_STATUS_UNSPECIFIED = 0;
+  STATEMENT_COVERAGE_STATUS_IMPORTED = 1;
+  // imported, but its lines don't add up to its balances
+  STATEMENT_COVERAGE_STATUS_UNBALANCED = 2;
+  // a gap before the first statement or between two
+  STATEMENT_COVERAGE_STATUS_MISSING = 3;
+  // came out since the latest statement
+  STATEMENT_COVERAGE_STATUS_DUE = 4;
+}
+
+// one statement period of an account. missing and due periods are guessed as a
+// month from the neighbouring statement.
+message StatementCoveragePeriod {
+  google.type.Date start = 1;
+  google.type.Date end = 2;
+  StatementCoverageStatus status = 3;
+  // for imported and unbalanced periods
+  optional int64 statement_id = 4;
+}

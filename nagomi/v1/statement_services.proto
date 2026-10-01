@@ -25,6 +25,10 @@ service StatementService {
   // transactions the statement no longer lists are deleted, unless they carry
   // notes, a receipt or splits.
   rpc ReparseStatement(ReparseStatementRequest) returns (ReparseStatementResponse);
+  // a statement-driven account's periods, oldest first: imported, missing and due
+  rpc GetStatementCoverage(GetStatementCoverageRequest) returns (GetStatementCoverageResponse);
+  // missing, due and unbalanced periods across the user's statement-driven accounts
+  rpc ListStatementAlerts(ListStatementAlertsRequest) returns (ListStatementAlertsResponse);
 }
 
 message PreviewStatementImportRequest {
@@ -165,4 +169,27 @@ message ReparseStatementResponse {
   Statement statement = 1;
   repeated ParsedStatementLine lines = 2;
   StatementReconciliation reconciliation = 3;
+}
+
+message GetStatementCoverageRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 account_id = 2 [(buf.validate.field).int64.gt = 0];
+}
+
+message GetStatementCoverageResponse {
+  repeated StatementCoveragePeriod periods = 1;
+}
+
+message ListStatementAlertsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message StatementAlert {
+  int64 account_id = 1;
+  string account_name = 2;
+  StatementCoveragePeriod period = 3;
+}
+
+message ListStatementAlertsResponse {
+  repeated StatementAlert alerts = 1;
 }
