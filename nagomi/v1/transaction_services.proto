@@ -63,9 +63,18 @@ message GetTransactionResponse {
 
 message TransactionInput {
   int64 account_id = 1 [(buf.validate.field).int64.gt = 0];
-  google.protobuf.Timestamp tx_date = 2;
-  google.type.Money tx_amount = 3;
-  TransactionDirection direction = 4;
+  google.protobuf.Timestamp tx_date = 2 [(buf.validate.field).required = true];
+  google.type.Money tx_amount = 3 [(buf.validate.field) = {
+    required: true
+    cel: {
+      id: "amount"
+      message: "currency_code is required and the amount must be at least one cent"
+      expression: "this.currency_code != '' && (this.units != 0 || this.nanos >= 10000000 || this.nanos <= -10000000)"
+    }
+  }];
+  TransactionDirection direction = 4 [(buf.validate.field).enum = {
+    in: [1, 2]
+  }];
   optional string description = 5;
   optional string merchant = 6;
   optional string user_notes = 7;
@@ -94,13 +103,21 @@ message UpdateTransactionRequest {
   google.protobuf.FieldMask update_mask = 3;
 
   optional google.protobuf.Timestamp tx_date = 4;
-  optional google.type.Money tx_amount = 5;
+  optional google.type.Money tx_amount = 5 [(buf.validate.field).cel = {
+    id: "currency"
+    message: "currency_code is required"
+    expression: "this.currency_code != ''"
+  }];
   optional TransactionDirection direction = 6;
   optional string description = 7;
   optional string merchant = 8;
   optional string user_notes = 9;
   optional int64 category_id = 10;
-  optional google.type.Money foreign_amount = 11;
+  optional google.type.Money foreign_amount = 11 [(buf.validate.field).cel = {
+    id: "currency"
+    message: "currency_code is required"
+    expression: "this.currency_code != ''"
+  }];
   optional double exchange_rate = 12;
   optional int64 account_id = 13 [(buf.validate.field).int64.gt = 0];
 }
