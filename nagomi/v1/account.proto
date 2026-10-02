@@ -33,16 +33,7 @@ message Account {
     len: 3,
     pattern: "^[A-Z]{3}$"
   }];
-  repeated string colors = 12 [(buf.validate.field).repeated = {
-    min_items: 3,
-    max_items: 3,
-    items: {
-      string: {
-        len: 7,
-        pattern: "^#[0-9a-fA-F]{6}$"
-      }
-    }
-  }];
+  string color = 12 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
   google.type.Money balance = 13;
   // balance comes from imported bank statements, which reconcile the
   // provisional email and connector transactions. only these accept statements
