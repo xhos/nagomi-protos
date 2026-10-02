@@ -40,8 +40,8 @@ message Account {
   bool statement_driven = 15;
   // the first statement the bank has; earlier periods aren't expected
   optional google.type.Date statements_start = 16;
-  // day of the month new statements come out; inferred from past statements when unset
-  optional int32 statement_release_day = 17;
+  reserved 17;
+  reserved "statement_release_day";
   // no statements are expected after this
   optional google.type.Date closed_at = 18;
 }

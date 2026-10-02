@@ -71,12 +71,10 @@ message UpdateAccountRequest {
   optional string main_currency = 10;
   optional string color = 11 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
   optional bool statement_driven = 12;
-  // these three are cleared by naming them in update_mask and leaving them unset
+  // these two are cleared by naming them in update_mask and leaving them unset
   optional google.type.Date statements_start = 13;
-  optional int32 statement_release_day = 14 [(buf.validate.field).int32 = {
-    gte: 1,
-    lte: 31
-  }];
+  reserved 14;
+  reserved "statement_release_day";
   optional google.type.Date closed_at = 15;
 }
 
