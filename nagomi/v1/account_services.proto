@@ -48,7 +48,7 @@ message CreateAccountRequest {
   optional string friendly_name = 5;
   google.type.Money anchor_balance = 6;
   string main_currency = 7;
-  optional string color = 8;
+  optional string color = 8 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
   bool statement_driven = 9;
 }
 
@@ -69,7 +69,7 @@ message UpdateAccountRequest {
   optional google.protobuf.Timestamp anchor_date = 8;
   optional google.type.Money anchor_balance = 9;
   optional string main_currency = 10;
-  optional string color = 11;
+  optional string color = 11 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
   optional bool statement_driven = 12;
   // these three are cleared by naming them in update_mask and leaving them unset
   optional google.type.Date statements_start = 13;
