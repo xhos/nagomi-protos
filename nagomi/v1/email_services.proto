@@ -1,0 +1,58 @@
+syntax = "proto3";
+
+package nagomi.v1;
+
+import "buf/validate/validate.proto";
+import "google/protobuf/timestamp.proto";
+
+// the last few emails the email parser received per user, so forwarding can be
+// checked and confirmed from the web; older ones are overwritten
+service EmailService {
+  // internal-only, called by nagomi-email-parser for every email it handles
+  rpc ReportEmail(ReportEmailRequest) returns (ReportEmailResponse);
+  rpc ListRecentEmails(ListRecentEmailsRequest) returns (ListRecentEmailsResponse);
+}
+
+enum EmailOutcome {
+  EMAIL_OUTCOME_UNSPECIFIED = 0;
+  EMAIL_OUTCOME_IMPORTED = 1;
+  // no parser matched, e.g. a forwarding confirmation
+  EMAIL_OUTCOME_UNRECOGNIZED = 2;
+  // a parser matched but no transaction was created
+  EMAIL_OUTCOME_FAILED = 3;
+}
+
+message ReceivedEmail {
+  int64 id = 1;
+  google.protobuf.Timestamp received_at = 2;
+  string from = 3;
+  string subject = 4;
+  EmailOutcome outcome = 5;
+  optional int64 transaction_id = 6;
+  optional string error = 7;
+  // plain text, kept only for emails that weren't imported
+  optional string body = 8;
+}
+
+message ReportEmailRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string from = 2 [(buf.validate.field).string.max_len = 500];
+  string subject = 3 [(buf.validate.field).string.max_len = 1000];
+  EmailOutcome outcome = 4 [(buf.validate.field).enum = {
+    defined_only: true
+    not_in: [0]
+  }];
+  optional int64 transaction_id = 5 [(buf.validate.field).int64.gt = 0];
+  optional string error = 6 [(buf.validate.field).string.max_len = 1000];
+  optional string body = 7 [(buf.validate.field).string.max_len = 32768];
+}
+
+message ReportEmailResponse {}
+
+message ListRecentEmailsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListRecentEmailsResponse {
+  repeated ReceivedEmail emails = 1;
+}
