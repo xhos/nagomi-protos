@@ -37,4 +37,10 @@ message ParsedStatementLine {
   int64 amount_cents = 3;
   TransactionDirection direction = 4;
   string description = 5;
+  // set when the line was charged in another currency; cents use the same
+  // hundredths scale as amount_cents, whatever the currency's minor unit
+  optional int64 foreign_amount_cents = 6;
+  optional string foreign_currency = 7;
+  // foreign_currency to the statement's currency
+  optional double exchange_rate = 8;
 }
