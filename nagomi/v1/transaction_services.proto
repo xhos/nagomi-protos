@@ -20,6 +20,9 @@ service TransactionService {
   rpc SplitTransaction(SplitTransactionRequest) returns (SplitTransactionResponse);
   rpc ForgiveTransaction(ForgiveTransactionRequest) returns (ForgiveTransactionResponse);
   rpc GetFriendBalances(GetFriendBalancesRequest) returns (GetFriendBalancesResponse);
+  rpc LinkTransfer(LinkTransferRequest) returns (LinkTransferResponse);
+  rpc UnlinkTransfer(UnlinkTransferRequest) returns (UnlinkTransferResponse);
+  rpc ListTransferSuggestions(ListTransferSuggestionsRequest) returns (ListTransferSuggestionsResponse);
 }
 
 message ListTransactionsRequest {
@@ -85,6 +88,11 @@ message TransactionInput {
   optional string external_id = 12;
   // unspecified is manual
   TransactionSource source = 13 [(buf.validate.field).enum.defined_only = true];
+  // rows sharing a transfer_ref are the two sides of one transfer
+  optional string transfer_ref = 14 [(buf.validate.field).string = {
+    min_len: 1
+    max_len: 200
+  }];
 }
 
 message CreateTransactionRequest {
@@ -180,4 +188,35 @@ message FriendBalance {
 
 message GetFriendBalancesResponse {
   repeated FriendBalance balances = 1;
+}
+
+// --- transfers ---
+
+message LinkTransferRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 outgoing_id = 2 [(buf.validate.field).int64.gt = 0];
+  int64 incoming_id = 3 [(buf.validate.field).int64.gt = 0];
+}
+
+message LinkTransferResponse {}
+
+message UnlinkTransferRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  // either side of the transfer
+  int64 transaction_id = 2 [(buf.validate.field).int64.gt = 0];
+}
+
+message UnlinkTransferResponse {}
+
+message ListTransferSuggestionsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message TransferSuggestion {
+  Transaction outgoing = 1;
+  Transaction incoming = 2;
+}
+
+message ListTransferSuggestionsResponse {
+  repeated TransferSuggestion suggestions = 1;
 }

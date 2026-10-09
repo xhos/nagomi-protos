@@ -27,6 +27,25 @@ enum TransactionSource {
   TRANSACTION_SOURCE_SPLIT = 5;
 }
 
+enum TransferStatus {
+  TRANSFER_STATUS_UNSPECIFIED = 0;
+  // counted as a move between own accounts
+  TRANSFER_STATUS_LINKED = 1;
+  // a plausible pair the user should confirm
+  TRANSFER_STATUS_SUGGESTED = 2;
+  // the user said these are not a transfer; never suggested again
+  TRANSFER_STATUS_REJECTED = 3;
+}
+
+enum TransferMethod {
+  TRANSFER_METHOD_UNSPECIFIED = 0;
+  // both sides carried the same transfer_ref
+  TRANSFER_METHOD_REFERENCE = 1;
+  // paired by amount, date and description
+  TRANSFER_METHOD_MATCHED = 2;
+  TRANSFER_METHOD_MANUAL = 3;
+}
+
 enum PeriodType {
   PERIOD_TYPE_UNSPECIFIED = 0;
   PERIOD_TYPE_7_DAYS = 1;

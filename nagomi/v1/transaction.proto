@@ -52,6 +52,18 @@ message Transaction {
   repeated Transaction splits = 23;
 
   TransactionSource source = 24;
+
+  // set when this is one side of a move between the user's own accounts
+  optional Transfer transfer = 25;
+}
+
+message Transfer {
+  int64 id = 1;
+  int64 counterpart_id = 2;
+  int64 counterpart_account_id = 3;
+  TransferMethod method = 4;
+  // what was lost on the way, when both sides share a currency
+  optional google.type.Money fee = 5;
 }
 
 message TransactionWithScore {
