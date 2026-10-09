@@ -64,6 +64,10 @@ message Transfer {
   TransferMethod method = 4;
   // what was lost on the way, when both sides share a currency
   optional google.type.Money fee = 5;
+  // the other side, so a transfer can be shown as one row without loading it
+  google.type.Money counterpart_amount = 6;
+  google.protobuf.Timestamp counterpart_date = 7;
+  optional string counterpart_description = 8;
 }
 
 message TransactionWithScore {
