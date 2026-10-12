@@ -6,6 +6,7 @@ import "nagomi/v1/rule.proto";
 import "buf/validate/validate.proto";
 import "google/protobuf/field_mask.proto";
 import "google/protobuf/struct.proto";
+import "google/protobuf/timestamp.proto";
 
 service RuleService {
   rpc ListRules(ListRulesRequest) returns (ListRulesResponse);
@@ -13,6 +14,7 @@ service RuleService {
   rpc CreateRule(CreateRuleRequest) returns (CreateRuleResponse);
   rpc UpdateRule(UpdateRuleRequest) returns (UpdateRuleResponse);
   rpc DeleteRule(DeleteRuleRequest) returns (DeleteRuleResponse);
+  rpc SuggestRules(SuggestRulesRequest) returns (SuggestRulesResponse);
 }
 
 message ListRulesRequest {
@@ -77,4 +79,29 @@ message DeleteRuleRequest {
 
 message DeleteRuleResponse {
   int64 affected_rows = 1;
+}
+
+message SuggestRulesRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  optional int32 limit = 2 [(buf.validate.field).int32 = {
+    gt: 0,
+    lte: 200
+  }];
+}
+
+// a description pattern shared by many uncategorized transactions
+message RuleSuggestion {
+  // matched case-insensitively as "description starts with pattern"
+  string pattern = 1;
+  int64 transaction_count = 2;
+  // a few distinct descriptions the pattern matches, most common first
+  repeated string examples = 3;
+  // the category most already-categorized matches of the pattern have
+  optional int64 category_id = 4;
+  google.protobuf.Timestamp last_seen = 5;
+}
+
+message SuggestRulesResponse {
+  repeated RuleSuggestion suggestions = 1;
+  int64 uncategorized_count = 2;
 }
