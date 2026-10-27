@@ -50,6 +50,7 @@ message CreateRuleRequest {
   google.protobuf.Struct conditions = 4;
   optional bool apply_to_existing = 5;
   optional string merchant = 6;
+  optional int32 priority_order = 7;
 }
 
 message CreateRuleResponse {
