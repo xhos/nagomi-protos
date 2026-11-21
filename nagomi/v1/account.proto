@@ -44,6 +44,20 @@ message Account {
   reserved "statement_release_day";
   // no statements are expected after this
   optional google.type.Date closed_at = 18;
+  // a group gathers accounts that are one place to the user (every wise currency
+  // balance). only for viewing and filtering; rules and imports still see the account
+  optional int64 group_id = 19;
+}
+
+message AccountGroup {
+  int64 id = 1;
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  string color = 3 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
+  google.protobuf.Timestamp created_at = 4;
+  google.protobuf.Timestamp updated_at = 5;
 }
 
 message AccountBalance {

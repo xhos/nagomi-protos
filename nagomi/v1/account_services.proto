@@ -21,6 +21,16 @@ service AccountService {
   rpc SetAccountAliases(SetAccountAliasesRequest) returns (SetAccountAliasesResponse);
   rpc FindAccountByAlias(FindAccountByAliasRequest) returns (FindAccountByAliasResponse);
   rpc MergeAccounts(MergeAccountsRequest) returns (MergeAccountsResponse);
+
+  rpc ListAccountGroups(ListAccountGroupsRequest) returns (ListAccountGroupsResponse);
+  // creates the group and moves the given accounts into it
+  rpc CreateAccountGroup(CreateAccountGroupRequest) returns (CreateAccountGroupResponse);
+  rpc UpdateAccountGroup(UpdateAccountGroupRequest) returns (UpdateAccountGroupResponse);
+  // the accounts stay, ungrouped
+  rpc DeleteAccountGroup(DeleteAccountGroupRequest) returns (DeleteAccountGroupResponse);
+  // moves accounts into a group, or out of any when group_id is unset. a group
+  // left without accounts is deleted
+  rpc SetAccountsGroup(SetAccountsGroupRequest) returns (SetAccountsGroupResponse);
 }
 
 message ListAccountsRequest {
@@ -132,3 +142,55 @@ message MergeAccountsResponse {
   Account account = 1;
   int64 transactions_moved = 2;
 }
+
+message ListAccountGroupsRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+}
+
+message ListAccountGroupsResponse {
+  repeated AccountGroup groups = 1;
+}
+
+message CreateAccountGroupRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  string name = 2 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string color = 3 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
+  repeated int64 account_ids = 4 [(buf.validate.field).repeated.items.int64.gt = 0];
+}
+
+message CreateAccountGroupResponse {
+  AccountGroup group = 1;
+}
+
+message UpdateAccountGroupRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 id = 2 [(buf.validate.field).int64.gt = 0];
+  optional string name = 3 [(buf.validate.field).string = {
+    min_len: 1,
+    max_len: 100
+  }];
+  optional string color = 4 [(buf.validate.field).string.pattern = "^#[0-9a-fA-F]{6}$"];
+}
+
+message UpdateAccountGroupResponse {}
+
+message DeleteAccountGroupRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  int64 id = 2 [(buf.validate.field).int64.gt = 0];
+}
+
+message DeleteAccountGroupResponse {}
+
+message SetAccountsGroupRequest {
+  string user_id = 1 [(buf.validate.field).string.uuid = true];
+  repeated int64 account_ids = 2 [(buf.validate.field).repeated = {
+    min_items: 1,
+    items: {int64: {gt: 0}}
+  }];
+  optional int64 group_id = 3 [(buf.validate.field).int64.gt = 0];
+}
+
+message SetAccountsGroupResponse {}
